@@ -1,0 +1,20 @@
+[
+  {
+    "filename": "20250403_124830 (online-video-cutter.com).mp4",
+    "customName": "to jakiś filmik",
+    "trimStart": 2.4,
+    "trimStop": 6.1,
+    "duration": 8.033333,
+    "videoWidth": 1280,
+    "videoHeight": 720
+  },
+  {
+    "filename": "20250403_124830.mp4",
+    "customName": "",
+    "trimStart": 1.2,
+    "trimStop": 2.7,
+    "duration": 4.032956,
+    "videoWidth": 1920,
+    "videoHeight": 1080
+  }
+]
