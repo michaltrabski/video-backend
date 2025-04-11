@@ -70,6 +70,7 @@ app.post('/submit-trims', async (req, res) => {
     await fs.writeFile(outputPath, JSON.stringify(data, null, 2), 'utf8');
     console.log('✅ Trim data saved to', outputPath);
     res.status(200).json({ message: 'Trim data saved successfully.' });
+    processAllTrims();
   } catch (error) {
     console.error('❌ Failed to save trim data:', error);
     res.status(500).json({ error: 'Failed to save data on server.' });
@@ -81,4 +82,3 @@ app.listen(PORT, () => {
 });
 
  
-processAllTrims();
