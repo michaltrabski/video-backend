@@ -16,11 +16,6 @@ type TrimData = {
   videoHeight: number;
 };
 
-function sanitizeFileName(name: string): string {
-  // Remove only characters not allowed in filenames (Windows-safe)
-  return name.replace(/[\\/:*?"<>|]/g, '');
-}
-
 export async function processAllTrims() {
   try {
     const rawData = await fs.readFile(trimDataPath, 'utf-8');
@@ -32,26 +27,33 @@ export async function processAllTrims() {
       const inputPath = path.join(inputFolder, data.filename);
 
       const baseName = data.customName
-        ? sanitizeFileName(data.customName.trim())
-        : sanitizeFileName(`trimmed_${path.parse(data.filename).name}`);
+        ? data.customName.replace(/[^a-zA-Z0-9-_]/g, '_')
+        : `trimmed_${path.parse(data.filename).name}`;
 
-      const verticalOutputPath = path.join(outputFolder, "VERTICAL " + baseName + '.mp4');
+      const trimmedOutputPath = path.join(outputFolder, baseName + '.mp4');
+      const verticalOutputPath = path.join(outputFolder, baseName + '_vertical.mp4');
 
-      console.log(`\n[${index + 1}/${trimDataList.length}] 🎬 Processing vertical video: ${data.filename}`);
+      console.log(`\n[${index + 1}/${trimDataList.length}] 🎬 Processing: ${data.filename}`);
 
-      if (await fileExists(verticalOutputPath)) {
-        console.log(`⚠️ Skipping — already exists: ${verticalOutputPath}`);
+      // Skip trimming if already exists
+      if (await fileExists(trimmedOutputPath)) {
+        console.log(`⚠️ Skipping trim — already exists: ${trimmedOutputPath}`);
       } else {
-        await trimAndCropToVertical({
+        await trimVideo({
           inputPath,
-          outputPath: verticalOutputPath,
+          outputPath: trimmedOutputPath,
           startTime: data.trimStart,
           duration: data.trimStop - data.trimStart,
-          videoWidth: data.videoWidth,
-          videoHeight: data.videoHeight
         });
+        console.log(`✅ Trimmed: ${trimmedOutputPath}`);
+      }
 
-        console.log(`✅ Created vertical video: ${verticalOutputPath}`);
+      // Skip cropping if already exists
+      if (await fileExists(verticalOutputPath)) {
+        console.log(`⚠️ Skipping crop — already exists: ${verticalOutputPath}`);
+      } else {
+        await cropToVertical(trimmedOutputPath, verticalOutputPath, data.videoWidth, data.videoHeight);
+        console.log(`✅ Cropped to vertical: ${verticalOutputPath}`);
       }
     }
 
@@ -61,36 +63,50 @@ export async function processAllTrims() {
   }
 }
 
-function trimAndCropToVertical({
+function trimVideo({
   inputPath,
   outputPath,
   startTime,
-  duration,
-  videoWidth,
-  videoHeight
+  duration
 }: {
   inputPath: string;
   outputPath: string;
   startTime: number;
   duration: number;
-  videoWidth: number;
-  videoHeight: number;
 }): Promise<void> {
   return new Promise((resolve, reject) => {
-    const targetAspectRatio = 9 / 16;
-    const targetHeight = videoHeight;
-    const targetWidth = Math.floor(targetHeight * targetAspectRatio);
-
-    const cropX = Math.floor((videoWidth - targetWidth) / 2);
-    const cropY = 0;
-
     ffmpeg(inputPath)
       .setStartTime(startTime)
       .setDuration(duration)
+      .output(outputPath)
+      .on('progress', (progress) => {
+        process.stdout.write(`⏳ Trimming progress: ${Math.floor(progress.percent || 0)}%\r`);
+      })
+      .on('end', () => resolve())
+      .on('error', (err) => reject(err))
+      .run();
+  });
+}
+
+function cropToVertical(
+  inputPath: string,
+  outputPath: string,
+  width: number,
+  height: number
+): Promise<void> {
+  return new Promise((resolve, reject) => {
+    const targetAspectRatio = 9 / 16;
+    const targetHeight = height;
+    const targetWidth = Math.floor(targetHeight * targetAspectRatio);
+
+    const cropX = Math.floor((width - targetWidth) / 2);
+    const cropY = 0;
+
+    ffmpeg(inputPath)
       .videoFilter(`crop=${targetWidth}:${targetHeight}:${cropX}:${cropY}`)
       .output(outputPath)
       .on('progress', (progress) => {
-        process.stdout.write(`⏳ Processing progress: ${Math.floor(progress.percent || 0)}%\r`);
+        process.stdout.write(`⏳ Cropping progress: ${Math.floor(progress.percent || 0)}%\r`);
       })
       .on('end', () => resolve())
       .on('error', (err) => reject(err))
