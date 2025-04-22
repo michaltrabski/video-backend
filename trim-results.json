@@ -1,11 +1,25 @@
-[
-  {
-    "filename": "DSCN0105.MP4",
-    "customName": "Zbliżenie na budynek z 1 kilometra",
-    "trimStart": 12.4,
-    "trimStop": 38,
-    "duration": 38.038,
-    "videoWidth": 3840,
-    "videoHeight": 2160
-  }
-]
+{
+  "allVideosTitle": "filmy wideo z Wrocławia",
+  "videos": [
+    {
+      "filename": "DSCN0056.MP4",
+      "customName": "zbliżenie na śruby",
+      "trimStart": 3.2,
+      "trimStop": 4.1,
+      "duration": 15,
+      "videoWidth": 1920,
+      "videoHeight": 1080,
+      "isActive": true
+    },
+    {
+      "filename": "DSCN0090.MP4",
+      "customName": "zbliżenie na linię średniego napięcia",
+      "trimStart": 18.3,
+      "trimStop": 20.7,
+      "duration": 40.04,
+      "videoWidth": 3840,
+      "videoHeight": 2160,
+      "isActive": true
+    }
+  ]
+}
