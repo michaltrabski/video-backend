@@ -2,7 +2,7 @@ import express from 'express';
 import cors from 'cors';
 import fs from 'fs/promises';
 import path from 'path';
-import { processAllTrims } from './trimVideos';
+import { processAllVideos } from './trimVideos';
 
 const app = express();
 const PORT = 3000;
@@ -75,7 +75,7 @@ app.post('/submit-trims', async (req, res) => {
     res.status(200).json({ message: 'Trim data saved successfully.' });
 
     // Kick off processing in the background (non-blocking)
-    processAllTrims();
+    processAllVideos();
   } catch (error) {
     console.error('❌ Failed to save trim data:', error);
     res.status(500).json({ error: 'Failed to save data on server.' });

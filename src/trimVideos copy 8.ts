@@ -3,7 +3,7 @@ import path from 'path';
 import ffmpeg from 'fluent-ffmpeg';
 
 const PRODUCE_VERTICAL = true;
-const PRODUCE_SCREENSHOTS = false;
+const PRODUCE_SCREENSHOTS = true;
 const REMOVE_SOURCE_FILES = false;
 
 const trimDataPath = path.join(__dirname, '..', 'trim-results.json');
@@ -43,34 +43,35 @@ export async function processAllVideos() {
     const horizontalVideos: string[] = [];
 
     for (const [index, data] of trimDataList.entries()) {
-      const { filename, customName, trimStart, trimStop } = data;
-      const inputPath = path.join(inputFolder, filename);
+      const inputPath = path.join(inputFolder, data.filename);
 
-      const tempVerticalPath = path.join(outputFolder, customName + '_VERTICAL.mp4');
-      const finalOutputPath = path.join(outputFolder, customName + '.mp4');
-      const screenshotPath = path.join(outputFolder, customName + '.jpg');
+   
 
-      console.log(`\n[${index + 1}/${trimDataList.length}] 🎬 Processing: ${filename}`);
+      const tempHorizontalPath = path.join(outputFolder, data.customName + '_HORIZONTAL.mp4');
+      const tempVerticalPath = path.join(outputFolder, data.customName + '_VERTICAL.mp4');
+      const finalOutputPath = path.join(outputFolder, data.customName + '.mp4');
+      const screenshotPath = path.join(outputFolder, data.customName + '.jpg');
+
+      console.log(`\n[${index + 1}/${trimDataList.length}] 🎬 Processing: ${data.filename}`);
 
       if (await fileExists(finalOutputPath)) {
         console.log(`⚠️ Skipping video — already exists: ${finalOutputPath}`);
       } else {
 
-        const horizontalVideo = await makeHorizontalVideo({
+        await makeHorizontalVideo({
           inputPath,
-          outputFolder,
-          namePrefix: `${customName}_HORIZONTAL`,
-          startTime: trimStart,
-          duration: trimStop - trimStart
+          outputPath: tempHorizontalPath,
+          startTime: data.trimStart,
+          duration: data.trimStop - data.trimStart
         });
 
-
-        console.log(`✅ Created temporary horizontal video: ${horizontalVideo}`);
-        horizontalVideos.push(horizontalVideo);
+        console.log(`✅ Created temporary horizontal video: ${tempHorizontalPath}`);
+        horizontalVideos.push(tempHorizontalPath);
 
         if (PRODUCE_VERTICAL) {
+ 
           await makeVerticalVideo({
-            inputPath: horizontalVideo,
+            inputPath: tempHorizontalPath,
             outputPath: tempVerticalPath,
             videoWidth: data.videoWidth,
             videoHeight: data.videoHeight
@@ -134,25 +135,18 @@ export async function processAllVideos() {
   }
 }
 
-
-
 function makeHorizontalVideo({
   inputPath,
-  outputFolder,
-  namePrefix,
+  outputPath,
   startTime,
-  duration,
+  duration
 }: {
   inputPath: string;
-  outputFolder: string;
-  namePrefix: string;
+  outputPath: string;
   startTime: number;
   duration: number;
-}): Promise<string> {
+}): Promise<void> {
   return new Promise((resolve, reject) => {
-    const { ext } = path.parse(inputPath);
-    const outputPath = path.join(outputFolder, `${namePrefix}${ext}`);
-
     ffmpeg(inputPath)
       .setStartTime(startTime)
       .setDuration(duration)
@@ -161,13 +155,11 @@ function makeHorizontalVideo({
       .on('progress', (progress) => {
         process.stdout.write(`⏳ Trimming progress: ${Math.floor(progress.percent || 0)}%\r`);
       })
-      .on('end', () => resolve(outputPath))
+      .on('end', () => resolve())
       .on('error', (err) => reject(err))
       .run();
   });
 }
-
-
 
 function makeVerticalVideo({
   inputPath,

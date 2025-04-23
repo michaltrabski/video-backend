@@ -1,22 +1,12 @@
 {
-  "allVideosTitle": "filmy wideo z Wrocławia",
+  "allVideosTitle": "Testuję super zoom w Nikon P1100 we Wrocławiu #nikon #p1100",
   "videos": [
     {
-      "filename": "DSCN0056.MP4",
-      "customName": "zbliżenie na śruby",
-      "trimStart": 3.2,
-      "trimStop": 4.1,
-      "duration": 15,
-      "videoWidth": 1920,
-      "videoHeight": 1080,
-      "isActive": true
-    },
-    {
-      "filename": "DSCN0090.MP4",
-      "customName": "zbliżenie na linię średniego napięcia",
-      "trimStart": 18.3,
-      "trimStop": 20.7,
-      "duration": 40.04,
+      "filename": "usun.MP4",
+      "customName": "1",
+      "trimStart": 2.4,
+      "trimStop": 2.5,
+      "duration": 6.006,
       "videoWidth": 3840,
       "videoHeight": 2160,
       "isActive": true
