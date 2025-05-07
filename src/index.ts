@@ -2,7 +2,9 @@ import express from 'express';
 import cors from 'cors';
 import fs from 'fs/promises';
 import path from 'path';
-import { processAllVideos } from './trimVideos';
+import { processAllVideos } from './processAllVideos';
+import { zoomOutVideos } from './zoomOutVideos';
+import { zoomInVideos } from './zoomInVideos';
 
 const app = express();
 const PORT = 3000;
@@ -15,7 +17,6 @@ app.use('/inputFolder', express.static(path.join(__dirname, '..', 'inputFolder')
 const inputFolder = path.join(__dirname, '..', 'inputFolder');
 
 const videoExtensions = ['.mp4', '.mov', '.avi', '.mkv', '.webm'];
-
 
 app.get('/files', async (req, res) => {
   try {
@@ -73,9 +74,58 @@ app.post('/submit-trims', async (req, res) => {
     console.log('✅ Trim data saved to', outputPath);
 
     res.status(200).json({ message: 'Trim data saved successfully.' });
-
-    // Kick off processing in the background (non-blocking)
+ 
     processAllVideos();
+  } catch (error) {
+    console.error('❌ Failed to save trim data:', error);
+    res.status(500).json({ error: 'Failed to save data on server.' });
+  }
+});
+
+app.post('/zoom-out-videos', async (req, res) => {
+  const data = req.body;
+
+  if (
+    typeof data !== 'object' ||
+    typeof data.allVideosTitle !== 'string' ||
+    !Array.isArray(data.videos)
+  ) {
+    return res.status(400).json({ error: 'Invalid data format. Expected { allVideosTitle, videos }.' });
+  }
+
+  try {
+    const outputPath = path.join(__dirname, '..', 'trim-results.json');
+    await fs.writeFile(outputPath, JSON.stringify(data, null, 2), 'utf8');
+    console.log('✅ Trim data saved to', outputPath);
+
+    res.status(200).json({ message: 'Trim data saved successfully.' });
+ 
+    zoomOutVideos();
+  } catch (error) {
+    console.error('❌ Failed to save trim data:', error);
+    res.status(500).json({ error: 'Failed to save data on server.' });
+  }
+});
+
+app.post('/zoom-in-videos', async (req, res) => {
+  const data = req.body;
+
+  if (
+    typeof data !== 'object' ||
+    typeof data.allVideosTitle !== 'string' ||
+    !Array.isArray(data.videos)
+  ) {
+    return res.status(400).json({ error: 'Invalid data format. Expected { allVideosTitle, videos }.' });
+  }
+
+  try {
+    const outputPath = path.join(__dirname, '..', 'trim-results.json');
+    await fs.writeFile(outputPath, JSON.stringify(data, null, 2), 'utf8');
+    console.log('✅ Trim data saved to', outputPath);
+
+    res.status(200).json({ message: 'Trim data saved successfully.' });
+ 
+    zoomInVideos();
   } catch (error) {
     console.error('❌ Failed to save trim data:', error);
     res.status(500).json({ error: 'Failed to save data on server.' });
